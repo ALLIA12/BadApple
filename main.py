@@ -1,11 +1,12 @@
 import os
 import re
+import threading
 import time
-import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 import sys
 import subprocess
+from moviepy.editor import VideoFileClip
 
 
 def processVideo(videoPath, videoName, savePath, scaleFactor):
@@ -53,14 +54,22 @@ def setCommandPromptSize(width, height):
     subprocess.call(command, shell=True)
 
 
-
-
-
 def imageToCommandLine(image):
     for row in image:
         line = ''.join(['*' if pixel == 0 else '.' for pixel in row])
         sys.stdout.write(line + '\n')
     sys.stdout.flush()
+
+
+def playAudioFromMP4(filepath):
+    # Load the video clip
+    clip = VideoFileClip(filepath)
+
+    # Extract the audio
+    audio = clip.audio
+
+    # Play the audio
+    audio.preview()
 
 
 def readGrayScaleImages(path):
@@ -86,6 +95,11 @@ if __name__ == '__main__':
     videoName = 'badApple.mp4'
     scale_factor = 0.02
     # processVideo(videoPath, videoName, imagePath, scale_factor)
+
+    thread = threading.Thread(target=playAudioFromMP4, args=(videoPath + "/" + videoName,))
+    thread.daemon = True
+    # Start the thread
+    thread.start()
     readGrayScaleImages(imagePath)
 
     print("Completed")
