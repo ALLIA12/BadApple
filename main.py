@@ -103,3 +103,4 @@ if __name__ == '__main__':
     readGrayScaleImages(imagePath)
 
     print("Completed")
+    #print("")
