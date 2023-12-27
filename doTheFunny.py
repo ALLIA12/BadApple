@@ -1,10 +1,9 @@
 import os
 import re
-import time
 import cv2
 import matplotlib.pyplot as plt
-import sys
-import subprocess
+from PIL import Image
+import numpy as np
 
 
 def processVideo(videoPath, videoName, savePath, scaleFactor):
@@ -44,35 +43,35 @@ def processVideo(videoPath, videoName, savePath, scaleFactor):
     plt.close()
 
 
-def setCommandPromptSize(width, height):
-    # Windows command to set command prompt size
-    command = f"mode con: cols={width} lines={height}"
 
-    # Execute the command
-    subprocess.call(command, shell=True)
-
-
-def imageToCommandLine(image):
+def imageToFiles(image, black, white):
+    counter = 1
+    directory = 'theFunny'
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     for row in image:
-        line = ''.join(['*' if pixel == 0 else '.' for pixel in row])
-        sys.stdout.write(line + '\n')
-    sys.stdout.flush()
-
+        for pixel in row:
+            try:
+                if pixel == 0:
+                    black.save(f"{directory}/{counter}.png")
+                else:
+                    white.save(f"{directory}/{counter}.png")
+            except Exception as e:  # To handel the exceptions if they happen
+                print(f"Error encountered: {e}")
+            counter += 1
 
 
 def readGrayScaleImages(path):
     # Example usage
-    width = 50  # Set the desired width in characters
-    height = 29  # Set the desired height in lines
-    setCommandPromptSize(width, height)
     images = sorted(os.listdir(path), key=lambda x: int(re.findall(r'\d+', x)[0]))
-    delay = 1 / 30
+    black_image = Image.fromarray(np.zeros((50, 50, 3), dtype=np.uint8))
+    white_image = Image.fromarray(np.ones((50, 50, 3), dtype=np.uint8) * 255)
     for image_file in images:
         image_path = os.path.join(path, image_file)
         image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-        imageToCommandLine(image)
-        time.sleep(delay)
-
+        resized_image = cv2.resize(image, (24, 16))  # Resize to 24x16 since that is what my screen size allows
+        imageToFiles(resized_image, black_image, white_image)
+        print(f"Finished {image_file}")
     plt.close()
 
 
@@ -81,6 +80,7 @@ if __name__ == '__main__':
     videoPath = 'video'
     videoName = 'badApple.mp4'
     scale_factor = 0.02
+    # processVideo(videoPath, videoName, imagePath, scale_factor)
     readGrayScaleImages(imagePath)
 
     print("Completed")
